@@ -1,0 +1,44 @@
+---
+title: "The Path Forward"
+---
+<style>
+.main-container {
+    margin-left: 0;
+    margin-right: 0;
+}
+</style>
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## A goal without a plan is just a wish.
+####    ― Antoine de Saint-Exupéry
+
+To expand on that, a plan which doesn't use widely demonstarted tools, is also just a wish.
+My goal is simple, Show you the dream and exactly how to get there. 
+
+* I hold these truths to be self evident
+    + People who have power, sought power and generally want more
+    + People who have money, sought money and generally want more
+    + People who have fame, sought fame and generally want more
+    + If someone gains power, fame, or money by making my life better, my life is still better
+
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
