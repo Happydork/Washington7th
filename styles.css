@@ -1,0 +1,88 @@
+img {
+    display: block;
+    margin: auto;
+}
+
+.title {
+  font-size: 38px;
+  font-family: "Times New Roman", Times, serif;
+  color: DarkGreen;
+  text-align: center;
+}
+
+.author { /* Header 4 - and the author and data headers use this too  */
+  font-size: 18px;
+  font-family: "Times New Roman", Times, serif;
+  color: DarkBlue;
+  text-align: center;
+}
+.date { /* Header 4 - and the author and data headers use this too  */
+  font-size: 18px;
+  font-family: "Times New Roman", Times, serif;
+  color: DarkRed;
+  text-align: center;
+}
+.main-container {
+  width: 100%;
+  max-width: none;
+  margin-left: auto;
+  margin-right: auto;
+}
+img-circle {
+    border-radius: 50%;
+}
+
+.navbar {
+  font-family: "Times New Roman", Times, serif;
+  background-color: Black;
+  border-color: Black;
+}
+
+.navbar-inverse {
+  background-color: #1b365b;
+  border: none;
+}
+
+.navbar-inverse {
+  background-color: #1b365b;
+  border: none;
+}
+
+.navbar-brand {
+  background-color: 	#003200;
+}
+
+.navbar-inverse .navbar-toggle {
+  border-color: #fff;
+}
+
+.navbar-inverse .navbar-toggle .icon-bar {
+  background-color: #fff;
+}
+
+.navbar-inverse .navbar-nav>.active>a,
+.navbar-inverse .navbar-nav>.active>a:hover,
+.navbar-inverse .navbar-nav>.active>a:focus {
+  background-color: #254a7c;
+}
+
+.navbar-inverse .navbar-toggle {
+  border-color: #fff;
+}
+
+.navbar-inverse .navbar-toggle .icon-bar {
+  background-color: #fff;
+}
+
+.navbar-inverse .navbar-nav>.active>a,
+.navbar-inverse .navbar-nav>.active>a:hover,
+.navbar-inverse .navbar-nav>.active>a:focus {
+  background-color: #254a7c;
+}
+
+
+
+.list-group-item.active {
+  background-color: #222;
+  border-color: #222;
+}
