@@ -1,0 +1,23 @@
+name: "Washinton7th"
+navbar:
+  title: "Washinton7th"
+  left:
+    - text: "Home"
+      href: index.html
+    - text: "About"
+      href: about.html
+    - text: "The Path Forward"
+      href: pathforward.html
+    - text: "Demographics"
+      href: demographics.html
+output:
+  rmarkdown::html_document:
+    theme: flatly
+    highlight: default
+    toc: TRUE
+    toc_depth: 4
+    toc_float: TRUE
+    df_print: paged
+    includes:
+      after_body: footer.html
+    css: styles1.css
