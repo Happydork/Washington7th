@@ -1,0 +1,17 @@
+base
+magrittr
+dplyr
+tidyverse
+ggplot2
+tibble
+tidyr
+readr
+purrr
+stringr
+forcats
+tidycensus
+tigris
+sf
+censusapi
+leaflet
+DT
