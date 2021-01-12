@@ -1,0 +1,206 @@
+---
+title: "Demogaphics"
+author: "Rick Lewis"
+#date: "12-28-2020"
+output: html_document
+---
+<style>
+.main-container {
+    margin-left: 0;
+    margin-right: 0;
+}
+</style>
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(magrittr)
+library(dplyr)
+library(tidyverse)
+library(tidycensus)
+library(tigris)
+library(sf)
+library(censusapi)
+library(leaflet)
+library(DT)
+library(stringr)
+
+#Global Options
+options(tigris_class = "sf")
+
+knit_print.pprintClass = function(x, ...) {knitr::asis_output(x, meta = list(head = '<script>console.log("text!")</script>'))}
+pprint = function(x) structure(x, class = 'pprintClass')
+```
+
+```{r GlobalConstants, echo = FALSE}
+cStateCode <- "53"
+cDistrictCode <- "07"
+cCountyCode1 <- "033" #King
+cCountyCode2 <- "061" #Snohomish
+```
+
+```{r AvailableAPIs, echo=FALSE, cache=TRUE}
+cYear <- Sys.Date() %>% format("%Y") %>% as.integer()
+
+dfApis <- listCensusApis()
+dfApisFiltered <- dfApis %>% filter(isTimeseries==TRUE | vintage>=(cYear-5)) %>% arrange(-vintage)
+dfApisFilteresTable <- dfApisFiltered %>% select(c(title,description))
+```
+Updated: `r Sys.Date()`
+
+## US Census Data
+
+The US Census Bureau has a wealth of data some of which we will explore here using R. (Which by the way, is the favorite programming language of pirates) This treasure trove of data contains a total of `r nrow(dfApis)` API's. You can think of an API as a database which contains information about one specific thing such as how much people are paying for housing. Some of the API's contain only historic data, which we will pass on for today. By filtering or only looking at data which was current in the last 5 calendar years. Specifically that is data which was collected on or after January, 1st `r cYear-5`. This leaves us with `r nrow(dfApisFiltered)` API's to explore. This is too many. Fortunately, much of the data is repackaged versions of the same thing, to make it easier for a casual user to consume. That we can ignore. Additionally, much of the data is from previous years. We can ignore that as well for the first pass.This leaves 2 data sets. This we can work with.
+
+```{r AvailableData, rows.print=20, echo=FALSE}
+DT::datatable(dfApisFilteresTable)
+```
+
+### `r dfApisFiltered$title[2]`
+
+```{r api2Desc, echo = FALSE}
+cApiNum <- 2
+vApiName <- paste0(dfApisFiltered$vintage[cApiNum],"/",dfApisFiltered$name[cApiNum])
+dfApisFiltered$description[cApiNum] %>% pprint()
+```
+
+#### Variables
+
+```{r api2Var, echo = FALSE}
+
+DfApi0Vars <- censusapi::listCensusMetadata(name = vApiName, type = "variables")
+DT::datatable(DfApi0Vars)
+```
+
+#### Geographies_available
+```{r api2Geo, echo = FALSE}
+DfApi0Geo <- censusapi::listCensusMetadata(name = vApiName, type = "geography")
+DT::datatable(DfApi0Geo)
+```
+
+#### Data
+```{r api2Data, echo = FALSE}
+ # DfApi0 <- censusapi::getCensus(name = vApiName,
+ #             vars = c("B19001B_001E","B19001B_002E","B19001B_003E","B19001B_004E","B19001B_005E","B19001B_006E",
+ #                      "B19001B_007E","B19001B_008E","B19001B_009E","B19001B_0010E","B19001B_0011E","B19001B_0012E",
+ #                      "B19001B_0013E","B19001B_0014E","B19001B_0015E","B19001B_0016E","B19001B_0017E"), 
+ #             region = "block group:*",
+ #             regionin = paste0("state:",cStateCode,"+county:",cCountyCode1,",",cCountyCode2,"+tract:*"))
+ # 
+ # DT::datatable(DfApi0)
+```
+
+### `r dfApisFiltered$title[10]`
+
+```{r api10Desc, echo = FALSE}
+cApiNum <- 10
+vApiName <- paste0(dfApisFiltered$vintage[cApiNum],"/",dfApisFiltered$name[cApiNum])
+dfApisFiltered$description[cApiNum] %>% pprint()
+```
+
+#### Variables
+
+```{r api10Var, echo = FALSE}
+
+DfApi10Vars <- censusapi::listCensusMetadata(name = vApiName, type = "variables")
+DT::datatable(DfApi10Vars)
+```
+
+#### Geographies_available
+```{r api10Geo, echo = FALSE}
+DfApi10Geo <- censusapi::listCensusMetadata(name = vApiName, type = "geography")
+DT::datatable(DfApi10Geo)
+```
+
+#### Data - Household Income Distribution by Race/Ethnicity
+```{r api20Data_IncomeRace, echo = FALSE}
+dfRows <- 10
+dfcol <- 17
+lRowValues <- NULL
+lAlphabet <- c("","A","B","C","D","E","F","G","H","I")
+DfApi10 <- data.frame(matrix(nrow=dfRows,ncol=dfcol+2))
+for(x in 1:dfRows){
+  lVariables <- NULL
+  for (y in 1:dfcol){
+    lVariables[y] <- paste0("B19001",lAlphabet[x],"_",formatC(y, width=3, flag="0"),"E")
+  }
+  dfVerificationStep <- censusapi::getCensus(name = vApiName,
+             vars = c(lVariables),
+             region = paste0("congressional district:",cDistrictCode),
+             regionin = paste0("state:",cStateCode))
+  lColNames <- dfVerificationStep %>% colnames()
+  if(x==1){
+    lColValues <-lColNames
+    lColValues[3] <- "Total"
+    lColValues[4] <- "Over $0"
+    for(z in 5:length(lColNames)){
+      lColValues[z] <- paste0("Over $",DfApi10Vars[which(DfApi10Vars$name==lColNames[z]),"label"] %>% str_extract("(\\d{2,3},*){2,3}")," under ->")
+    }
+    lApi10Title <- DfApi10Vars[which(DfApi10Vars$name==lColNames[4]),"concept"]
+    lApi10TitleTidy <- lApi10Title %>% stringr::str_replace_all("[[:punct:]]", "")
+    lRowValues[x] <- "Everyone"
+  } else {
+    lRowValues[x] <- DfApi10Vars[which(DfApi10Vars$name==lColNames[4]),"concept"] %>% 
+      stringr::str_replace_all("[[:punct:]]", "") %>% 
+      stringr::str_remove(lApi10TitleTidy) %>% 
+      stringr::str_squish()
+  }
+  DfApi10[x,] <- dfVerificationStep 
+}
+colnames(DfApi10) <- lColValues
+rownames(DfApi10) <- lRowValues
+
+
+
+# DfApi10 <- censusapi::getCensus(name = vApiName,
+             # vars = c("B19001B_001E","B19001B_002E","B19001B_003E","B19001B_004E","B19001B_005E","B19001B_006E","B19001B_007E","B19001B_008E",
+             #          "B19001B_009E","B19001B_010E","B19001B_011E","B19001B_012E","B19001B_013E","B19001B_014E","B19001B_015E","B19001B_016E",
+             #          "B19001B_017E"),
+#             region = "block group:*",
+#             regionin = paste0("state:",cStateCode,"+county:",cCountyCode1,",",cCountyCode2,"+tract:*"))
+#
+
+
+DfApi10 %>% t() %>% DT::datatable()
+```
+
+#### Data - Median Income Distribution by Job/Gender
+
+```{r api20Data_IncomeJobGender, echo = FALSE}
+#B24022 or B24122 vs B24123 for more detail Gender/job/pay (B24121 baseline?)
+#C24010 Race by Job
+#How much does empolyment factor into the difference in income?
+#B15011 - Gender degree
+#B20004 - earnings by sex by degree
+```
+
+## Maps
+
+```{r GeoShapes, echo=FALSE, cache=TRUE}
+Wa_counties         <- tigris::counties(state = cStateCode, cb = TRUE, progress_bar = FALSE)
+wa_congressdist116  <- tigris::congressional_districts(cb = FALSE, resolution = '20m', progress_bar = FALSE) %>% filter(STATEFP==cStateCode)
+#wa_BlockGroup       <- tigris::block_groups(cStateCode, county = c(cCountyCode,cCountyCode2), cb = FALSE, progress_bar = FALSE)
+
+#cities              <- core_based_statistical_areas(cb = FALSE, resolution = "500k", year = NULL)
+#blockGeo            <- blocks(cStateCode, county = c("061","033"))
+#leaflet(blockGeo) %>%addTiles() %>%addPolygons()
+
+#DfApi0Tracts <- inner_join
+
+wa_congressdist116 %>%  filter(CD116FP == cDistrictCode)%>% leaflet() %>% addTiles() %>% addPolygons()
+
+#gg <- ggplot()
+#gg <- gg + geom_sf(data = Wa_counties %>% filter(COUNTYFP == c("061","033")), color="black", fill="white", size=0.25)
+#gg <- gg + geom_sf(data = Wa_counties), color="black", fill="white", size=0.25)
+#gg
+
+
+```
+
+
+```{r cars}
+#va_co <- counties(state = "Virginia", cb = TRUE)
+
+```
+
+
+
